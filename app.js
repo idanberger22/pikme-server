@@ -28,7 +28,7 @@ const corsOptions = {
   origin: ['https://d26z2m6nm787p2.cloudfront.net','https://d26z2m6nm787p2.cloudfront.net/','https://d3d4bwbgnbrnq1.cloudfront.net','https://d3d4bwbgnbrnq1.cloudfront.net/'],
   credentials: true
 }
-app.use(cors(corsOptions))
+app.use(cors())
 
 const generateRTCToken = (req, resp) => {
   const channelName = req.params.channel;
