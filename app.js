@@ -25,7 +25,7 @@ app.use(bodyParser1.urlencoded({ extended: false }))
 app.use(bodyParser1.json())
 
 const corsOptions = {
-  origin: ['https://d26z2m6nm787p2.cloudfront.net','https://d26z2m6nm787p2.cloudfront.net/'],
+  origin: ['https://d26z2m6nm787p2.cloudfront.net','https://d26z2m6nm787p2.cloudfront.net/','https://d3d4bwbgnbrnq1.cloudfront.net','https://d3d4bwbgnbrnq1.cloudfront.net/'],
   credentials: true
 }
 app.use(cors(corsOptions))
