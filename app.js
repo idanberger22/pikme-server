@@ -1,17 +1,15 @@
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
+const cors = require('cors')
 const bodyParser1 = require('body-parser')
 const mongoose = require('mongoose')
 const { RtcTokenBuilder, RtcRole } = require('agora-access-token')
 const HandleAccounts = require('./routes/HandleAccounts')
 const HandleCreators = require('./routes/HandleCreators')
 const HandleEvent = require('./routes/HandleEvents')
-const cors = require('cors')
-
 let keys = process.env.NODE_ENV === 'production' ? '' : require('./keys')
-let password = process.env.NODE_ENV === 'production' ? process.env.mongo : keys.mongo
-const uri = `mongodb+srv://homeric:${password}@cluster0.gclzigv.mongodb.net/?retryWrites=true&w=majority`
+const uri = `mongodb+srv://homeric:${process.env.NODE_ENV === 'production' ? process.env.mongo : keys.mongo}@cluster0.gclzigv.mongodb.net/?retryWrites=true&w=majority`
 
 mongoose.connect(uri, {
   useNewUrlParser: true,
@@ -27,10 +25,10 @@ app.use(bodyParser1.urlencoded({ extended: false }))
 app.use(bodyParser1.json())
 
 const corsOptions = {
-  origin: ['http://127.0.0.1:8080', 'http://localhost:8080', 'http://127.0.0.1:3000', 'http://localhost:3000'],
+  origin: ['https://d26z2m6nm787p2.cloudfront.net','https://d26z2m6nm787p2.cloudfront.net/'],
   credentials: true
 }
-app.use(cors())
+app.use(cors(corsOptions))
 
 const generateRTCToken = (req, resp) => {
   const channelName = req.params.channel;
@@ -62,14 +60,14 @@ const generateRTCToken = (req, resp) => {
   const currentTime = Math.floor(Date.now() / 1000);
   const privilegeExpireTime = currentTime + expireTime;
   let token;
+  let agoraA = process.env.NODE_ENV === 'production' ? process.env.agoraA : keys.agoraA
+  let agoraB = process.env.NODE_ENV === 'production' ? process.env.agoraB : keys.agoraB
 
   if (req.params.tokentype === 'userAccount') {
-    token = RtcTokenBuilder.buildTokenWithAccount("a917d14afed34934a2f185b47e97eb0a", "63399e63c1ce49889642043b5610921c", channelName, uid, role, privilegeExpireTime)
+    token = RtcTokenBuilder.buildTokenWithAccount(agoraA, agoraB, channelName, uid, role, privilegeExpireTime)
   } else if (req.params.tokentype === 'uid') {
-
-    token = RtcTokenBuilder.buildTokenWithUid("a917d14afed34934a2f185b47e97eb0a", "63399e63c1ce49889642043b5610921c", channelName, uid, role, privilegeExpireTime)
+    token = RtcTokenBuilder.buildTokenWithUid(agoraA, agoraB, channelName, uid, role, privilegeExpireTime)
   } else {
-
     return resp.status(500).json({ 'error': 'token type is invalid' })
   }
   return resp.send({ 'rtcToken': token });
