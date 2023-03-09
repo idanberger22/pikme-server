@@ -296,12 +296,7 @@ router.put('/accept-event/:eventId', async (req, res, next) => {
               const event = result
               CreatorsInfo.find({}).then(async creators => {
                 for (let i = 0; i < creators.length; i++) {
-
-
-
                   var creatorEvents;
-
-
                   for (var key in creators[i].creatorEvents) {
 
                     if (creators[i].creatorEvents[key]._id == id) {
@@ -534,7 +529,6 @@ router.post('/sell-ticket/:eventId', async (req, res, next) => {
 });
 
 router.post('/announce-winner/:eventId', async (req, res, next) => {
-
   try {
     const eventId = req.params.eventId;
     const { teamWon } = req.body;
@@ -582,78 +576,24 @@ router.post('/announce-winner/:eventId', async (req, res, next) => {
 
 });
 
+router.get('/announce-winner-fund/:eventId', async (req, res, next) => {
+  try {
+    const eventId = req.params.eventId;
+    const event = await EventInfo.findById(eventId)
+    //need to manually set prize in BNB
+    const prize = 5
+    const ratio = prize / event.fund.target * 0.9
+    const moneyToGive = {}
+    for (const [key, value] of Object.entries(event.fund.investors)) {
+      moneyToGive[key] = value * ratio
+    }
+    res.send(moneyToGive)
+  } 
+  catch (err) {
+    res.status(400).send('Something went wrong');
+  }
+})
 
-// router.post('/announce-winner/:eventId', async (req, res, next) => {
-//   announce the winner ( make sure to check if the sender is admin)
-//   try{
-//     const eventId = req.params.eventId;
-//     const { teamWon, ownerAddress} = req.body;
-//     let query = {}
-//     let ticketCost = 20000000000000000;
-//     let moneyPerTicket = 0;
-//     let creatorOne = {}
-//     let creatorTwo = {}
-//     let owner = {}
-//     await EventInfo.findById( eventId).then( async data => {
-//       let newViewers = data.viewers
-//       if (teamWon == "teamOne"){
-//         if(data.teamOneTickets>0 && data.teamTwoTickets >0){
-//           moneyPerTicket = ((data.teamTwoTickets )*ticketCost*0.9 +  data.teamOneTickets*ticketCost)/data.teamOneTickets
-//         }
-//         creatorOne = {playerChosen:"teamOne", moneyWon:(data.teamTwoTickets )*ticketCost*0.04 }
-//         creatorTwo = {playerChosen:"teamOne", moneyWon:(data.teamTwoTickets )*ticketCost*0.01}
-//         owner = {playerChosen:"teamOne", moneyWon:(data.teamTwoTickets )*ticketCost*0.05}
-//       }
-//       else if (teamWon == "teamTwo"){
-//         if(data.teamOneTickets>0 && data.teamTwoTickets >0){
-//           moneyPerTicket = (data.teamTwoTickets*ticketCost +( data.teamOneTickets)*ticketCost*0.9)/data.teamTwoTickets
-//         }
-//         creatorOne = {playerChosen:"teamTwo", moneyWon:(data.teamOneTickets)*ticketCost*0.04 }
-//         creatorTwo = {playerChosen:"teamTwo", moneyWon:( data.teamOneTickets)*ticketCost*0.01}
-//         owner = {playerChosen:"teamTwo", moneyWon:( data.teamOneTickets)*ticketCost*0.05}
-//       }
-//       else if (teamWon == "draw"){
-//         moneyPerTicket = ticketCost
-//       }
-//       for (var key in newViewers) {
-//         if(newViewers[key].playerChosen == teamWon){
-//           newViewers[key] = {playerChosen:newViewers[key].playerChosen, tickets:newViewers[key].tickets, moneyWon:newViewers[key].tickets*moneyPerTicket }
-//         }
-//         else if(teamWon=="draw"){
-//           newViewers[key] = {playerChosen:newViewers[key].playerChosen, tickets:newViewers[key].tickets, moneyWon:newViewers[key].tickets*moneyPerTicket }
-//         }
-//         else{
-//           newViewers[key] = {playerChosen:newViewers[key].playerChosen, tickets:newViewers[key].tickets, moneyWon:0 }
-//         }
-//       }
-
-//       newViewers[data.team1.walletAddress] = creatorOne
-//       newViewers[data.team2.walletAddress] = creatorTwo
-//       newViewers["0xae8B9A0e3759F32D36CDD80d998Bb18fB9Ccf53d"] = owner
-//       query["viewers"] = newViewers
-
-//       await EventInfo.findByIdAndUpdate(eventId, query, { new: true }).then(newData => {
-//         if (newData) {
-//           res.send(newData)
-//         }
-//         else res.status(400).send('Event not found');
-//     })
-//         .catch((err) => {
-//           console.log("her", err)
-//           res.status(400).send('Event not found');
-//         });
-//       })
-//       .catch((err) => {
-//         res.status(404).send('Something went wrong');
-//       });
-//   }catch(err){
-//     console.log(err)
-//     res.status(404).send('Something went wrong');
-//   }
-
-// });
-
-//post route that gets wallet address and list of events id and loop through them and returns list of each event and how much money won
 router.post('/get-results/:walletAddress', async (req, res, next) => {
   try {
     const walletAddress = req.params.walletAddress;
