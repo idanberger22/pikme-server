@@ -1,108 +1,83 @@
-const express = require('express');
+const express = require('express')
 const router = express.Router()
-const { generateOTP, fast2sms } = require("../util/otp");
-const twilio = require('twilio');
+const { generateOTP } = require("../util/otp")
+const twilio = require('twilio')
 const CreatorsInfo = require('../data/creatorInfo')
+const accountSid = 'AC75e9e9d2b51dd2021fed64e4a6f5c588'
+const authToken = 'acdf8aaee1d986233878d07316c976d3'
 
-const accountSid = 'AC75e9e9d2b51dd2021fed64e4a6f5c588';
-const authToken = 'c07bd1677c3b5331de7719a113a898f9';
-const client = new twilio(accountSid, authToken);
-function mode(arr) {
-    return arr.sort((a, b) =>
-        arr.filter(v => v === a).length
-        - arr.filter(v => v === b).length
-    ).pop();
-}
-
-// returns if the walletaddress ]is already in the database
-// generate otp and send it to the phone number
 router.post('/send-otp', async (req, res, next) => {
     try {
-
+        console.log('hhheerererer0')
         const phone = req.body.phone
-        console.log("phone ", phone)
-        CreatorsInfo.find({ phone  }).then(async data => {
-            console.log("data ", data[0]);
-            const otp = generateOTP(6)
-            const message = `Your OTP is ${otp}`
-            const contactNumber = phone
-            console.log("contactNumber ", contactNumber)
-            console.log("message ", message)
-            if (data.length > 0) {
-              
-                data.otp = otp
-                CreatorsInfo.findOneAndUpdate({ phone: contactNumber }, {otp:otp}, {
-                    new: true,
-                    upsert: true
-                }).then(async (result) => {
-                    console.log("result ", result);
-                    try {
-                        console.log("here 1", message, contactNumber);
-                        const r = await client.messages.create({
-                            body: message,
-                            from: '+19704108380',
-                            to: "+" + contactNumber
-                        })
-                        
-                        console.log("here ", r);
-                    } 
-                    catch (err) {
-                        console.log("fffff " , err);
-                    }
-                   
-                   
-                    return res.status(200).send({"response":true});
-                }).
-                    catch((err) => {
-                        console.log("err ", err);
-                        return res.status(400).send('Something when wrong1');
-                    }
-                    )
-
-            }
-            else{
-                // create new account
-                console.log("create new account");
-            
-                const creatorInfo = new CreatorsInfo({
-                    nickName:"bob",
-                    phone: phone,
-                    otp: otp,
-                    image: "https://i.imgur.com/0y0XQ2I.png",
-                    creatorEvents: {},
-                    creationDate: new Date(),
-                    walletAddress: "0x0000000000000000000000000000000000000000",
-                    socialLink: "",
-                    proficiencyGame:"none",
-                    topAchievement:"none",
-                    region:"none",
-                    status:"none",
-                    experience:2000,
-                    approvedCreator: false,
-                })
-                await creatorInfo.save()
-                
-                try{
+        const client = new twilio(accountSid, authToken)
+        const data = await CreatorsInfo.find({ phone })
+        const otp = generateOTP(6)
+        const message = `Your OTP is ${otp}`
+        const contactNumber = phone
+        if (data.length > 0) {
+            data.otp = otp
+            CreatorsInfo.findOneAndUpdate({ phone: contactNumber }, { otp: otp }, {
+                new: true,
+                upsert: true
+            }).then(async (result) => {
+                try {
+                    console.log('hhheeerrreee111')
                     const r = await client.messages.create({
                         body: message,
                         from: '+19704108380',
                         to: "+" + contactNumber
                     })
-                    console.log("r ", r);
-                    return res.status(200).send({"response":true});
+                    console.log('rrrrr', r)
+                    return res.status(200).send({ "response": true });
                 }
-                catch(err){
+                catch (err) {
+                    console.log("error", err);
+                    return res.status(401).send({ "response": true });
+                }
+            }).
+                catch((err) => {
                     console.log("err ", err);
-                    return res.status(200).send({"response":false});
+                    return res.status(402).send('Something when wrong1');
                 }
-         
-              
+                )
+        }
+        else {
+            const creatorInfo = new CreatorsInfo({
+                nickName: "bob",
+                phone: phone,
+                otp: otp,
+                image: "https://i.imgur.com/0y0XQ2I.png",
+                creatorEvents: {},
+                creationDate: new Date(),
+                walletAddress: "0x0000000000000000000000000000000000000000",
+                socialLink: "",
+                proficiencyGame: "none",
+                topAchievement: "none",
+                region: "none",
+                status: "none",
+                experience: 2000,
+                approvedCreator: false,
+            })
+            await creatorInfo.save()
+
+            try {
+                const r = await client.messages.create({
+                    body: message,
+                    from: '+19704108380',
+                    to: "+" + contactNumber
+                })
+                console.log("r ", r);
+                return res.status(200).send({ "response": true });
             }
-        
-    })
+            catch (err) {
+                console.log("err ", err);
+                return res.status(200).send({ "response": false });
+            }
+        }
     }
     catch (err) {
-        return res.status(400).send('Something when wrong');
+        return res.status(403).send('Something when wrong');
     }
 })
 
@@ -112,13 +87,14 @@ router.post('/get-creator/:phone', async (req, res, next) => {
         const phone = req.params.phone
         const userOtp = req.body.otp
         // check if the otp is correct
-        await CreatorsInfo.find({ phone
+        await CreatorsInfo.find({
+            phone
         }).then(data => {
             if (data.length > 0) {
                 if (data[0].otp == userOtp) {
-                     if (data[0].approvedCreator == false) {
-                         return res.send(false)
-                     }
+                    if (data[0].approvedCreator == false) {
+                        return res.send(false)
+                    }
                     return res.send(data[0]);
                 }
                 else {
@@ -157,7 +133,7 @@ router.post('/add-creator/:walletAddress', async (req, res, next) => {
                 eventsArray.sort(function (a, b) {
                     return new Date(b.date) - new Date(a.date);
                 });
-          
+
                 data[0].creatorEvents = eventsArray
 
                 return res.send(data[0])
@@ -248,7 +224,7 @@ router.post('/update-creator-events/:walletAddress', async (req, res, next) => {
                 console.log("creatorEvents before ", creatorEvents)
                 creatorEvents[event._id] = event;
                 console.log("creatorEvents after ", creatorEvents)
-                await CreatorsInfo.findOneAndUpdate({walletAddress}, {creatorEvents:creatorEvents}, { new: true }).then((result) => {
+                await CreatorsInfo.findOneAndUpdate({ walletAddress }, { creatorEvents: creatorEvents }, { new: true }).then((result) => {
                     return res.send(result);
                 }).catch((err) => {
                     console.log("err ", err);
@@ -367,13 +343,12 @@ router.post('/update-info/:phone', async (req, res, next) => {
             query["region"] = req.body.region
         }
         // if all required fields are filled, the creator is approved
-        if (req.body.nickName  && req.body.image && req.body.walletAddress  && req.body.proficiencyGame && req.body.topAchievement && req.body.experience && req.body.region)
-        {
+        if (req.body.nickName && req.body.image && req.body.walletAddress && req.body.proficiencyGame && req.body.topAchievement && req.body.experience && req.body.region) {
             query["approvedCreator"] = true
         }
-        
 
-        await CreatorsInfo.findOneAndUpdate({phone }, query, { new: true }).then(data => {
+
+        await CreatorsInfo.findOneAndUpdate({ phone }, query, { new: true }).then(data => {
             if (data) res.send(data)
             else res.send({ error: "address not found" })
         })
