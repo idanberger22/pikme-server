@@ -581,13 +581,23 @@ router.post('/announce-winner-fund/:eventId', async (req, res, next) => {
     const { prize } = req.body;
     const eventId = req.params.eventId;
     const event = await EventInfo.findById(eventId)
-    const ratio = (prize / event.fund.current) * 0.9
     const moneyToGive = {}
-    for (const [key, value] of Object.entries(event.fund.investors)) {
-      moneyToGive[key] = value + (value * ratio)
+    const ratio = prize/event.fund.target
+    if (ratio >= 1) {
+      const prizePool = prize - event.fund.target
+      for (const [key, value] of Object.entries(event.fund.investors)) {
+        const part = value / event.fund.target
+        moneyToGive[key] = value + (part * prizePool * 0.9)
+      }
+    }
+    else{
+      for (const [key, value] of Object.entries(event.fund.investors)) {
+      moneyToGive[key] = value * ratio
+    }
     }
     res.send(moneyToGive)
-  } 
+  }
+
   catch (err) {
     res.status(400).send('Something went wrong');
   }

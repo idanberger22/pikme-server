@@ -34,12 +34,9 @@ const io = socketio(server, {
             }
           
             const user = userJoin(socket.id, username, roomName)
-
-            console.log("use is ", user)
             socket.join(user.room)
             const usersInRoom = getRoomUsers(user.room)
-            const viewers = usersInRoom.lengthnpm
-            console.log("viewers", viewers)
+            const viewers = usersInRoom.length
             socket.to(user.room).emit('message', {"nickName":"bot", "message": `${username} has connected to the room`, "color":"cyan", viewers:viewers} )
             socket.emit('message', {"nickName":"bot", "message": `hi ${username} Welcome to the room `, "color":"cyan", "newRoom":true, viewers:viewers} )
             }
