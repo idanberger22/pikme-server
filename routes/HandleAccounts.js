@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router()
 const AccountsInfo = require('../data/accountinfo')
-const keys = process.env.NODE_ENV === 'production' ? '' : require('../keys')
 const EventInfo = require('../data/eventsinfo')
 
 function mode(arr) {

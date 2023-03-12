@@ -3,7 +3,7 @@ const router = express.Router()
 const { generateOTP } = require("../util/otp")
 const twilio = require('twilio')
 const CreatorsInfo = require('../data/creatorInfo')
-let keys = process.env.NODE_ENV === 'production' ? '' : require('../keys')
+const keys = process.env.NODE_ENV === 'production' ? '' : require('../keys')
 const accountSid = process.env.NODE_ENV === 'production' ? process.env.twilioSid : keys.twilioSid
 const authToken = process.env.NODE_ENV === 'production' ? process.env.twilioAuth : keys.twilioAuth
 
