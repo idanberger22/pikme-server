@@ -585,7 +585,7 @@ router.get('/announce-winner-fund/:eventId', async (req, res, next) => {
     const ratio = prize / event.fund.target * 0.9
     const moneyToGive = {}
     for (const [key, value] of Object.entries(event.fund.investors)) {
-      moneyToGive[key] = value * ratio
+      moneyToGive[key] = value + (value * ratio)
     }
     res.send(moneyToGive)
   } 
