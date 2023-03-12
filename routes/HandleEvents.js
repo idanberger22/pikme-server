@@ -582,7 +582,7 @@ router.get('/announce-winner-fund/:eventId', async (req, res, next) => {
     const event = await EventInfo.findById(eventId)
     //need to manually set prize in BNB
     const prize = 5
-    const ratio = prize / event.fund.target * 0.9
+    const ratio = (prize / event.fund.current) * 0.9
     const moneyToGive = {}
     for (const [key, value] of Object.entries(event.fund.investors)) {
       moneyToGive[key] = value + (value * ratio)
