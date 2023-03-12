@@ -3,32 +3,30 @@ const router = express.Router()
 const { generateOTP } = require("../util/otp")
 const twilio = require('twilio')
 const CreatorsInfo = require('../data/creatorInfo')
-const accountSid = 'AC75e9e9d2b51dd2021fed64e4a6f5c588'
-const authToken = 'acdf8aaee1d986233878d07316c976d3'
+let keys = process.env.NODE_ENV === 'production' ? '' : require('../keys')
+const accountSid = process.env.NODE_ENV === 'production' ? process.env.twilioSid : keys.twilioSid
+const authToken = process.env.NODE_ENV === 'production' ? process.env.twilioAuth : keys.twilioAuth
 
 router.post('/send-otp', async (req, res, next) => {
     try {
-        console.log('hhheerererer0')
         const phone = req.body.phone
         const client = new twilio(accountSid, authToken)
         const data = await CreatorsInfo.find({ phone })
         const otp = generateOTP(6)
-        const message = `Your OTP is ${otp}`
+        const message = `Your pikmeCreators OTP is ${otp}`
         const contactNumber = phone
         if (data.length > 0) {
             data.otp = otp
             CreatorsInfo.findOneAndUpdate({ phone: contactNumber }, { otp: otp }, {
                 new: true,
                 upsert: true
-            }).then(async (result) => {
+            }).then(async () => {
                 try {
-                    console.log('hhheeerrreee111')
-                    const r = await client.messages.create({
+                    await client.messages.create({
                         body: message,
                         from: '+19704108380',
                         to: "+" + contactNumber
                     })
-                    console.log('rrrrr', r)
                     return res.status(200).send({ "response": true });
                 }
                 catch (err) {
@@ -60,7 +58,6 @@ router.post('/send-otp', async (req, res, next) => {
                 approvedCreator: false,
             })
             await creatorInfo.save()
-
             try {
                 const r = await client.messages.create({
                     body: message,
