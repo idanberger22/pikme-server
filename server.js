@@ -23,7 +23,6 @@ const io = socketio(server, {
               console.log("user already in room")
             }
             else{
-
               if(lastUserRoom){
                 socket.leave(lastUserRoom.room)
                 const user = userLeave(socket.id)
@@ -41,22 +40,16 @@ const io = socketio(server, {
             socket.emit('message', {"nickName":"bot", "message": `hi ${username} Welcome to the room `, "color":"cyan", "newRoom":true, viewers:viewers} )
             }
           })
-    
-    
-        console.log('New client connected')
         clients.push(socket)
     
         socket.on('chat', (msg) => {
-            console.log('message: ' + msg.message)
             const user = getCurrentUser(socket.id)
-            console.log("user is ", user)
             const usersInRoom = getRoomUsers(user.room)
             const viewers = usersInRoom.length
             io.to(user.room).emit('message', {...msg, viewers:viewers})
         })
     
       socket.on("disconnect", () => {
-        console.log("Client disconnected " ,socket.id)
         const lastUserRoom = getCurrentUser(socket.id)
         const user = userLeave(socket.id)
         var viewers = 0
@@ -64,15 +57,12 @@ const io = socketio(server, {
           const usersInRoom = getRoomUsers(lastUserRoom.room)
           viewers = usersInRoom.length
         }
-        console.log("viewers", viewers)
         if (user) {
             io.to(user.room).emit("message",{"nickName":"bot", "message": `${user.username} disconnected`, "color":"cyan", viewers:viewers})
-    
         }
       })
       socket.on("end-event", () => {
         const user = getCurrentUser(socket.id)
-        console.log("user is ", user)
         const usersInRoom = getRoomUsers(user.room)
         const viewers = usersInRoom.length
         io.to(user.room).emit('event-ended', {"nickName":"bot", "message": "event ended", "color":"cyan", viewers:viewers})

@@ -10,9 +10,7 @@ const AccountsInfo = require('../data/accountinfo')
 function containsObject(obj, list) {
   var i;
   for (i = 0; i < list.length; i++) {
-    console.log(list[i].walletAddress, " vs ", obj.walletAddress)
     if (list[i].walletAddress == obj.walletAddress) {
-      console.log("found")
       return true;
     }
   }
@@ -61,12 +59,10 @@ router.get('/get-most-popular-event', async (req, res) => {
 router.get('/get-events', async (req, res, next) => {
   var dt = new Date().toUTCString()
   dt = new Date(dt)
-  console.log("dt is ", dt)
   let query = { approved: true, date: { $gte: dt } }
 
   const allLetters = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
   const possibleMistake = "aeiuock";
-  console.log("here")
   try {
     if (req.query.search) {
 
@@ -92,16 +88,12 @@ router.get('/get-events', async (req, res, next) => {
             posWord += " " + posLetter3;
           }
         }
-        else {
-          console.log("false")
-        }
         posLetter = req.query.search.replace(req.query.search[i], '');
         posWord += " " + posLetter;
       }
       query["$text"] = { $search: posWord };
 
       let r = await EventInfo.find(query)
-      console.log("r is ", r)
       return res.json(r)
 
     }
@@ -127,7 +119,6 @@ router.get('/get-events', async (req, res, next) => {
 // i think you should make youtube series about how you train your fundimentals as a pro player, people are searcing for value so it will help you grow your youtube
 
 router.post('/create-event', async (req, res, next) => {
-  console.log('hhheeerreee')
   try {
     const { player, shareWithCommunity, date, game, category } = req.body;
     const playerAddress = player.walletAddress;
@@ -187,16 +178,10 @@ router.post('/create-event', async (req, res, next) => {
         const event = eventRes
         await CreatorsInfo.find({ walletAddress: playerAddress }).then(async data => {
           if (data.length > 0) {
-            console.log("found creator");
             var creatorEvents = data[0].creatorEvents;
-            console.log("creatorEvents before ", creatorEvents)
             creatorEvents[event._id] = event;
-            console.log("creatorEvents after ", creatorEvents)
-            console.log("event._id ", playerAddress)
             await CreatorsInfo.findOneAndUpdate({ walletAddress: playerAddress }, { creatorEvents }, { new: true }).then((result) => {
-              console.log("updated creator ", result)
             }).catch((err) => {
-              console.log("err ", err);
               res.status(404).send('Something went wrong');
             });
           }
@@ -276,11 +261,7 @@ router.put('/accept-event/:eventId', async (req, res, next) => {
     const playerAddress = playerToAdd.walletAddress;
     const id = req.params.eventId;
     await EventInfo.findById(id).then((result) => {
-      // if team to add is not already in teams array
-      console.log("result ", result)
       const state = containsObject(playerToAdd, result.players);
-      console.log("d is ", playerToAdd.walletAddress, ' and ', result)
-      console.log("state is ", state)
       if (!state && playerToAdd && !result.approved) {
 
         var newReult = result;
@@ -317,7 +298,6 @@ router.put('/accept-event/:eventId', async (req, res, next) => {
                   var creatorEvents = data[0].creatorEvents;
                   creatorEvents[event._id] = event;
                   await CreatorsInfo.findOneAndUpdate({ walletAddress: playerAddress }, { creatorEvents: creatorEvents }, { new: true }).then((newResult1) => {
-                    console.log("updated creator")
                   }).catch((err) => {
                     console.log("err ", err);
                     return res.status(404).send('Something went wrong');
@@ -358,12 +338,8 @@ router.post("/invest-fund/:eventId", async (req, res, next) => {
   try {
     const { eventId } = req.params;
     const { amount, buyerAddress, confirmNumber } = req.body;
-    console.log("amount ", 0.01 * Number(amount))
-    console.log("address ", buyerAddress)
-    console.log("confirmNumber: ", confirmNumber)
     let query = {}
     const smartConfrim = await daiToken.methods.confirmCode(buyerAddress).call()
-    console.log("smartConfrim: ", smartConfrim)
     if (smartConfrim == confirmNumber) {
       const event = await EventInfo.findById(eventId).then(async (result) => {
         if (result) {
@@ -456,10 +432,8 @@ router.post('/sell-ticket/:eventId', async (req, res, next) => {
     const eventId = req.params.eventId
 
     const { playerChosen, buyerAddress, confirmNumber, tickets } = req.body;
-    console.log("confirmNumber: ", confirmNumber)
     let query = {}
     const smartConfrim = await daiToken.methods.confirmCode(buyerAddress).call()
-    console.log("smartConfrim: ", smartConfrim)
     if (smartConfrim == confirmNumber) {
       await EventInfo.findById(eventId).then(async data => {
         let newViewers = data.viewers
@@ -474,27 +448,17 @@ router.post('/sell-ticket/:eventId', async (req, res, next) => {
           newViewers[buyerAddress] = { playerChosen: playerChosen, tickets: tickets + data.viewers[buyerAddress].tickets }
         }
         else {
-          console.log("new viewer ", newViewers)
           newViewers[buyerAddress] = { playerChosen: playerChosen, tickets: tickets }
-          console.log("newViewers: ", newViewers)
         }
-        console.log("newViewers: ", newViewers)
-        console.log("query: ", query)
         query["viewers"] = newViewers
-        console.log("query: ", query)
         await EventInfo.findByIdAndUpdate(eventId, query, { new: true }).then(async (newDataEvent) => {
-          console.log("newDataEvent: ", newDataEvent)
           if (newDataEvent) {
             let newQuery = newDataEvent
             newQuery["chosen"] = playerChosen
             newQuery.date = new Date(newQuery.date);
-            console.log("new data to add ", newQuery)
             await AccountsInfo.findOne({ walletAddress: buyerAddress }).then(async (data) => {
-              console.log("test data is ", data.matchHistory)
               data.matchHistory[newQuery._id] = newQuery
               await AccountsInfo.findOneAndUpdate({ walletAddress: buyerAddress }, { matchHistory: data.matchHistory }, { new: true }).then(newData => {
-                if (newData) console.log("updated")
-                else console.log("not updated")
               })
                 .catch((err) => {
                   return res.send({ "error": "user not found" });
@@ -577,11 +541,11 @@ router.post('/announce-winner-fund/:eventId', async (req, res, next) => {
     const event = await EventInfo.findById(eventId)
     const moneyToGive = {}
     const ratio = prize / event.fund.target
+    const prizePool = prize - event.fund.target
     if (ratio >= 1) {
-      const prizePool = prize - event.fund.target
       for (const [key, value] of Object.entries(event.fund.investors)) {
         const part = value / event.fund.target
-        moneyToGive[key] = value + (part * prizePool * 0.9)
+        moneyToGive[key] = { moneyWon: value + (part * prizePool * 0.9) }
       }
     }
     else {
@@ -589,10 +553,11 @@ router.post('/announce-winner-fund/:eventId', async (req, res, next) => {
         moneyToGive[key] = { moneyWon: value * ratio }
       }
     }
-    let query = []
-    query["viewers"] = moneyToGive
+    moneyToGive["0xae8B9A0e3759F32D36CDD80d998Bb18fB9Ccf53d"] = { moneyWon: 0.1 * prizePool }
+    let query = {}
+    query.viewers = moneyToGive
     await EventInfo.findByIdAndUpdate(eventId, query, { new: true })
-    res.send(moneyToGive)
+    res.send(query)
   }
 
   catch (err) {
@@ -607,20 +572,19 @@ router.post('/get-results/:walletAddress', async (req, res, next) => {
     let events = {}
     for (var i = 0; i < eventsIds.length; i++) {
       await EventInfo.findById(eventsIds[i]).then(async data => {
-          if (data.viewers[walletAddress].moneyWon > 0) {
-            events[eventsIds[i]] = data.viewers[walletAddress].moneyWon
+        if (data.viewers[walletAddress].moneyWon > 0) {
+          events[eventsIds[i]] = data.viewers[walletAddress].moneyWon
+        }
+        else {
+          if (!data.payed) {
+            events[eventsIds[i]] = 0
           }
           else {
-            if (!data.payed) {
-              events[eventsIds[i]] = 0
-            }
-            else {
-              events[eventsIds[i]] = -1
-            }
+            events[eventsIds[i]] = -1
           }
+        }
       })
         .catch((err) => {
-          console.log("her", err)
           return res.status(404).send('Something went wrong');
         });
     }
@@ -664,19 +628,12 @@ router.post('/make-like/:eventId', async (req, res, next) => {
   // confirm it with the block chain
   try {
     const eventId = req.params.eventId
-    console.log('id', eventId)
     const { buyerAddress, didLike } = req.body;
     let query = {}
     await EventInfo.findById(eventId).then(async data => {
-      console.log(data.likes)
-
       let newLikes = data.likes
-
       newLikes[buyerAddress] = didLike;
-
       query["likes"] = newLikes
-
-
       await EventInfo.findByIdAndUpdate(eventId, query, { new: true }).then(newData => {
         let countLikes = 0;
         let didLikeUser = false;
@@ -696,7 +653,6 @@ router.post('/make-like/:eventId', async (req, res, next) => {
         else res.status(400).send('not found')
       })
         .catch((err) => {
-          console.log("her", err)
           res.status(404).send('Something went wrong')
         });
     })
@@ -743,7 +699,6 @@ router.get('/get-event-creator/:eventId', async (req, res, next) => {
       if (data.length == 0) {
         return res.status(404).send('Event not found')
       }
-      console.log(data)
       return res.json(data[0])
     })
       .catch((err) => {
@@ -766,7 +721,6 @@ router.get('/get-event/:eventId', async (req, res, next) => {
       if (data.length == 0) {
         return res.status(404).send('Event not found')
       }
-      console.log(data)
       return res.json(data[0])
     })
       .catch((err) => {
@@ -781,11 +735,8 @@ router.get('/get-event/:eventId', async (req, res, next) => {
 // edit event details
 router.post('/edit-event/:eventId', async (req, res, next) => {
   try {
-    console.log('hhheeerrreee')
     const eventId = req.params.eventId
     const { date, game, category, fund } = req.body;
-    console.log(date)
-    console.log(eventId)
     const dt = new Date(date)
     let query = {}
     query["date"] = dt
@@ -862,7 +813,6 @@ router.post('/delete-unapproved-event/:eventId', async (req, res, next) => {
     const eventId = req.params.eventId
     EventInfo.findByIdAndDelete(eventId).then(data => {
       // delete from creators all events that are not approved\
-      console.log(data)
       CreatorsInfo.find({}).then(creators => {
         for (let i = 0; i < creators.length; i++) {
           let newEvents = {}
@@ -931,8 +881,6 @@ router.get('/get-event-stats/:eventId', async (req, res, next) => {
             else {
               percent = (newData.playersTickets[key] / ticketsSold) * 100;
             }
-
-            console.log("here ", percent)
             stats[key] = {
               ratio: ratio,
               percent: percent
@@ -952,7 +900,6 @@ router.get('/get-event-stats/:eventId', async (req, res, next) => {
       });
   }
   catch (e) {
-    console.log(e)
     res.status(404).send('Something went wrong')
   }
 

@@ -53,7 +53,6 @@ router.post('/wallet-connect/:walletAddress', async (req, res, next) => {
                 return res.send(result);
             })
                 .catch((err) => {
-                    console.log("err ", err);
                     return res.status(400).send('Something when wrong');
                 });
         }
@@ -99,12 +98,8 @@ router.post('/update-address-history/:walletAddress', async (req, res, next) => 
     const walletAddress = req.params.walletAddress.toLowerCase()
     let newQuery = req.body
     newQuery.date = new Date(newQuery.date);
-    console.log("new data to add ", newQuery)
     await AccountsInfo.findOne({ walletAddress }).then(async (data) => {
-        console.log("test data is ", data.matchHistory)
         data.matchHistory[newQuery._id] = newQuery
-
-
         await AccountsInfo.findOneAndUpdate({ walletAddress }, { matchHistory: data.matchHistory }, { new: true }).then(newData => {
             if (newData) res.send(newData.matchHistory)
             else res.send({ error: "address not found" })
@@ -121,7 +116,6 @@ router.post('/update-address-history/:walletAddress', async (req, res, next) => 
 
 router.get('/get-tickets/:walletAddress', async (req, res, next) => {
     try {
-        console.log("test ", req.body)
         var dt = new Date().toUTCString()
         dt = new Date(dt)
         const cDate = dt
@@ -130,8 +124,7 @@ router.get('/get-tickets/:walletAddress', async (req, res, next) => {
         const walletAddress = req.params.walletAddress.toLowerCase()
         await AccountsInfo.findOne({ walletAddress }).then(async data => {
             const history = data.matchHistory
-            console.log("h", history)
-            var holderEvent;
+            var holderEvent
             for (const key in history) {
 
                 // if (history[key].fund) ignore the event
@@ -141,7 +134,6 @@ router.get('/get-tickets/:walletAddress', async (req, res, next) => {
                     holderEvent = eventData.toObject()
                     holderEvent["chosenAddress"] = history[key].chosenAddress
                     history[key] = holderEvent
-                    console.log("event 1 ", holderEvent)
                     if (history[key].date < cDate && holderEvent.over) {
 
                         pastList.push(history[key])
