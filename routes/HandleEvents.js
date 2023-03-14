@@ -374,7 +374,6 @@ router.post("/invest-fund/:eventId", async (req, res, next) => {
 
                           await AccountsInfo.findOne({ walletAddress: buyerAddress }).then(async (data) => {
                             data.matchHistory[newQuery._id] = newQuery
-                            console.log("testdata tdadsad data is ", data.matchHistory)
                             await AccountsInfo.findOneAndUpdate({ walletAddress: buyerAddress }, { matchHistory: data.matchHistory }, { new: true }).then(newData => {
                               if (newData) res.send(newQuery);
                               else res.status(400).send('problem');
@@ -482,7 +481,6 @@ router.post('/sell-ticket/:eventId', async (req, res, next) => {
         });
     }
     else {
-      console.log("not the same confirm")
       res.status(404).send('Something went wrong');
     }
   } catch (err) {

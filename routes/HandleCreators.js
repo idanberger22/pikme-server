@@ -117,9 +117,7 @@ router.post('/add-creator/:walletAddress', async (req, res, next) => {
         // convert the wallet address to lowercase
 
         await CreatorsInfo.find({ walletAddress }).then(data => {
-            console.log("phone ", walletAddress)
             if (data.length > 0) {
-                console.log("found creator")
                 // sort the events by date and if its over
                 var events = data[0].creatorEvents
                 var eventsArray = []
@@ -135,7 +133,6 @@ router.post('/add-creator/:walletAddress', async (req, res, next) => {
                 return res.send(data[0])
             }
             else {
-                console.log("did not find creator")
                 createNewAccount = true
             }
         })
@@ -147,23 +144,6 @@ router.post('/add-creator/:walletAddress', async (req, res, next) => {
 
             var dt = new Date().toUTCString()
             dt = new Date(dt)
-            //create new creator account
-            /*
-            example of creator account
-            {
-                nickName : "nick",
-                image : "https://images.unsplash.com/photo-1561211919-1947abbbb35b?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8YWJzdHJhY3QlMjBibHVlfGVufDB8fDB8fA%3D%3D&w=1000&q=80",
-                creatorEvents : {},
-                walletAddress : "0x1234567890",
-                socialLinks : "https://www.youtube.com/channel/UCJ5v_MCY6GNUBTO8-D3XoAg",
-                proficiencyGame : "Fortnite",
-                topAchievement : "top 10 in the world",
-                status: "pro player",
-                region: "NA",
-                experience: "2021",
-    
-            }
-            */
             const { nickName, image, creatorEvents, creationDate, walletAddress, socialLink, proficiencyGame, topAchievement, status, region, experience, approvedCreator } = {
                 nickName: req.body.nickName,
                 image: req.body.image,
@@ -235,7 +215,6 @@ router.post('/update-creator-events/:walletAddress', async (req, res, next) => {
 // remove event from creatorEvents array
 router.post('/remove-creator-events/:walletAddress', async (req, res, next) => {
     try {
-        console.log("remove-creator-events")
         const walletAddress = req.params.walletAddress
         const eventId = req.body.eventId
         await CreatorsInfo.find({ walletAddress }).then(async data => {

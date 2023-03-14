@@ -20,7 +20,6 @@ const io = socketio(server, {
             
             const lastUserRoom = getCurrentUser(socket.id)
             if (lastUserRoom && lastUserRoom.room == roomName) {
-              console.log("user already in room")
             }
             else{
               if(lastUserRoom){
@@ -28,7 +27,6 @@ const io = socketio(server, {
                 const user = userLeave(socket.id)
                 if (user) {
                     io.to(user.room).emit("message",{"nickName":"bot ", "message": `${username} disconnected`, "color":"cyan"})
-
                 }
             }
           
