@@ -64,7 +64,6 @@ router.post('/send-otp', async (req, res, next) => {
                     from: '+19704108380',
                     to: "+" + contactNumber
                 })
-                console.log("r ", r);
                 return res.status(200).send({ "response": true });
             }
             catch (err) {
@@ -204,10 +203,7 @@ router.post('/add-creator/:walletAddress', async (req, res, next) => {
         console.log(err)
         res.status(404).send('Something went wrong');
     }
-
-
 });
-
 
 // gets event and pushes it to the creatorEvents array
 router.post('/update-creator-events/:walletAddress', async (req, res, next) => {
@@ -216,11 +212,8 @@ router.post('/update-creator-events/:walletAddress', async (req, res, next) => {
         const event = req.body.event
         await CreatorsInfo.find({ walletAddress }).then(async data => {
             if (data.length > 0) {
-                console.log("found creator");
                 var creatorEvents = data[0].creatorEvents;
-                console.log("creatorEvents before ", creatorEvents)
                 creatorEvents[event._id] = event;
-                console.log("creatorEvents after ", creatorEvents)
                 await CreatorsInfo.findOneAndUpdate({ walletAddress }, { creatorEvents: creatorEvents }, { new: true }).then((result) => {
                     return res.send(result);
                 }).catch((err) => {
@@ -247,11 +240,8 @@ router.post('/remove-creator-events/:walletAddress', async (req, res, next) => {
         const eventId = req.body.eventId
         await CreatorsInfo.find({ walletAddress }).then(async data => {
             if (data.length > 0) {
-                console.log("found creator");
                 var creatorEvents = data[0].creatorEvents;
-                console.log("creatorEvents before ", creatorEvents)
                 delete creatorEvents[eventId];
-                console.log("creatorEvents after ", creatorEvents)
                 await CreatorsInfo.findOneAndUpdate({ walletAddress }, { creatorEvents: creatorEvents }, { new: true }).then((result) => {
                     return res.send(result);
                 }).catch((err) => {
@@ -278,7 +268,6 @@ router.get('/get-creator-events/:walletAddress', async (req, res, next) => {
         const walletAddress = req.params.walletAddress
         await CreatorsInfo.findOne({ walletAddress }).then(async data => {
             if (data) {
-                console.log("found creator");
                 var creatorEvents = data.creatorEvents;
                 var expiredEvents = [];
                 var notExpiredEvents = [];
